@@ -105,10 +105,7 @@ public class SimpleSubscriberApp {
         // Subscribe to the topic and create a stream of messages
         TStream<String> msgs = mqtt.subscribe(topic, 0/*qos*/);
         
-        // Process the received msgs - just print them out
-//        msgs.sink(tuple -> System.out.println(
-//                String.format("[%s] received: %s", Util.simpleTS(), tuple)));
-        
+        //filtering and publishing data
         msgs.sink(tuple -> {
 			try {
 				filterData(tuple);
@@ -186,9 +183,6 @@ public class SimpleSubscriberApp {
         
         mqtt.publish(msgs, topic, 0/*qos*/, true/*retain*/);
         
-        // run the application / topology
-//        System.out.println("Console URL for the job: "
-//                + tp.getServices().getService(HttpServer.class).getConsoleUrl());
         tp.submit(t);
      
 	}
