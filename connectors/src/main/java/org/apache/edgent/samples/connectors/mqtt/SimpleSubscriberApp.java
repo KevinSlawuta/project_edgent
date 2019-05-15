@@ -33,6 +33,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.edgent.connectors.mqtt.MqttConfig;
@@ -108,7 +109,14 @@ public class SimpleSubscriberApp {
 //        msgs.sink(tuple -> System.out.println(
 //                String.format("[%s] received: %s", Util.simpleTS(), tuple)));
         
-        msgs.sink(tuple -> filterData(tuple));
+        msgs.sink(tuple -> {
+			try {
+				filterData(tuple);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
         
         // run the application / topology
         System.out.println("Console URL for the job: "
@@ -136,11 +144,13 @@ public class SimpleSubscriberApp {
             sensorobject = (JsonObject) observationSensorItems.get(i);
             
             if ((sensorobject.get("TypeCode").getAsString().equals("Temperature")) || (sensorobject.get("TypeCode").getAsString().equals("Illuminance")) || (sensorobject.get("TypeCode").getAsString().equals("Humidity")) ) {
-                System.out.println(sensorobject + "ist in neuem JSONArray");
+//                System.out.println(sensorobject + "ist in neuem JSONArray");
                 observationsenSensorItemsNew.add(sensorobject);
             }
-            else 
-                System.out.println(sensorobject + "nicht in neuem JSONArray");
+            else {
+//                System.out.println(sensorobject + "nicht in neuem JSONArray");
+            }
+
         }
         
         newobservation.add("Sensors", observationsenSensorItemsNew);
@@ -148,14 +158,39 @@ public class SimpleSubscriberApp {
         msgpayload.add("Observation", newobservation);
 //        System.out.println(observationsenSensorItemsNew);
 
-       publishFilteredData(msgpayload.toString());
+        if(msgpayload != null)
+        	publishFilteredData(msgpayload.toString());
         
 	}
 	
 	
 	public void publishFilteredData(String result) throws Exception {
 	   
+		String topic = "Factory/ColorSorter/Sensor/Filtered";
         
+        
+        DevelopmentProvider tp = new DevelopmentProvider();
+        
+        // build the application/topology
+        
+        Topology t = tp.newTopology("mqttSamplePublisher");
+        
+
+        // Create the MQTT broker connector
+        MqttConfig mqttConfig = createMqttConfig();
+        MqttStreams mqtt = new MqttStreams(t, () -> mqttConfig);
+        
+        // Create a sample stream of tuples to publish
+        AtomicInteger cnt = new AtomicInteger();
+        TStream<String> msgs = t.strings(result);
+        
+        mqtt.publish(msgs, topic, 0/*qos*/, true/*retain*/);
+        
+        // run the application / topology
+//        System.out.println("Console URL for the job: "
+//                + tp.getServices().getService(HttpServer.class).getConsoleUrl());
+        tp.submit(t);
+     
 	}
 	
 	public void comments() {
