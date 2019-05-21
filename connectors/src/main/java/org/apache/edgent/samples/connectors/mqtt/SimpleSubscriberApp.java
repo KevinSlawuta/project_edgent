@@ -178,7 +178,6 @@ public class SimpleSubscriberApp {
         MqttStreams mqtt = new MqttStreams(t, () -> mqttConfig);
         
         // Create a sample stream of tuples to publish
-        AtomicInteger cnt = new AtomicInteger();
         TStream<String> msgs = t.strings(result);
         
         mqtt.publish(msgs, topic, 0/*qos*/, true/*retain*/);
@@ -187,30 +186,4 @@ public class SimpleSubscriberApp {
      
 	}
 	
-	public void comments() {
-//		int windowtime = 30;
-//		DevelopmentProvider tp = new DevelopmentProvider();
-//		
-//
-//		// build the application/topology
-//
-//		Topology t = tp.newTopology("mqttSampleSubscriber");
-//
-//		// System.setProperty("javax.net.debug", "ssl"); // or "all"; "help" for full
-//		// list
-//
-//		// Create the MQTT broker connector
-//		MqttConfig mqttConfig = createMqttConfig();
-//		MqttStreams mqtt = new MqttStreams(t, () -> mqttConfig);
-//
-//		// Subscribe to the topic and create a stream of messages
-//		TStream<String> stream = mqtt.subscribe(topic, 0/* qos */);
-//		
-//		stream.sink(tupel -> filterData(tupel));
-//
-////		stream.filter(tup -> (tup.contains("CEL") || tup.contains("LUX") || tup.contains("PCT"))); 
-////		TWindow<String, Object> window = stream.last(windowtime, TimeUnit.SECONDS, tuple -> 0  );
-////		TStream<Object> batch = window.batch((tuples,key) -> { return tuples; }); 
-////		// Process the received msgs - just print them out
-	}
 }
